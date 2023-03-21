@@ -1,0 +1,76 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+### configuration parameters ###
+
+VAGRANT_IMAGE="adavilag/ubuntu-server-22.04.1"
+
+KUBE_NAME="kube"
+KUBE_MEMORY = "1024"
+KUBE_CPUS = "2"
+KUBE_DISKSIZE = "50GB"
+
+DEVOPS_NAME="devops"
+DEVOPS_MEMORY = "2049"
+DEVOPS_CPUS = "2"
+DEVOPS_DISKSIZE = "50GB"
+
+Vagrant.configure("2") do |config|
+
+	# Global configuration for all VMS
+	config.vm.provision "shell", inline:"echo '10.0.2.3 damosoft.internal.com' | sudo tee -a /etc/hosts"
+	config.vm.box = VAGRANT_IMAGE
+	config.vm.synced_folder "../", "/media/dtech"
+
+	# Configuration for DEVOPS machine
+	config.vm.define "devops" do |devops|
+
+		# PORT FORWARDS
+		devops.vm.network :forwarded_port, guest: 9002, host: 9002, auto_correct: true
+		devops.vm.network :forwarded_port, guest: 9003, host: 9003, auto_correct: true
+		devops.vm.network :forwarded_port, guest: 1100, host: 1100, auto_correct: true
+
+		# MACHINE CONFIG
+		devops.disksize.size = DEVOPS_DISKSIZE
+		devops.vm.provision "shell", path: "PROV_DEVOPS.sh"
+		# devops.vm.provision "shell", path: "RUN_DEVOPS.sh", run: 'always'
+
+		devops.vm.provider "virtualbox" do |v|
+			v.name = DEVOPS_NAME
+			v.gui = false
+			v.customize ["modifyvm", :id, "--memory", DEVOPS_MEMORY, "--cpus", DEVOPS_CPUS]
+		end
+
+	end
+
+	# Configuration for KUBE machine
+	config.vm.define "kube" do |kube|
+
+		# PORT FORWARDS
+		# Kube dashboard
+		kube.vm.network :forwarded_port, guest: 10443, host: 10443, auto_correct: true
+
+		# Applications
+		kube.vm.network :forwarded_port, guest: 8080, host: 8080, auto_correct: true
+		kube.vm.network :forwarded_port, guest: 8081, host: 8081, auto_correct: true
+		kube.vm.network :forwarded_port, guest: 8082, host: 8082, auto_correct: true
+		kube.vm.network :forwarded_port, guest: 8083, host: 8083, auto_correct: true
+		kube.vm.network :forwarded_port, guest: 8084, host: 8084, auto_correct: true
+		kube.vm.network :forwarded_port, guest: 8085, host: 8085, auto_correct: true
+		kube.vm.network :forwarded_port, guest: 8086, host: 8086, auto_correct: true
+
+		# MACHINE CONFIG
+		kube.disksize.size = KUBE_DISKSIZE
+		kube.vm.provision "shell", path: "PROV_KUBE.sh"
+		# kube.vm.provision "shell", path: "RUN_KUBE.sh", run: 'always'
+
+		kube.vm.provider "virtualbox" do |v|
+			v.name = KUBE_NAME
+			v.gui = false
+			v.customize ["modifyvm", :id, "--memory", KUBE_MEMORY, "--cpus", KUBE_CPUS]
+		end
+
+	end
+
+end
+
