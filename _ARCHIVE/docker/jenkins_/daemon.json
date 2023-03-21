@@ -1,0 +1,4 @@
+{
+  "insecure-registries" : ["damosoft.internal.com:1100","damosoft.internal.com:1101","10.0.2.3:1100"]
+}
+
