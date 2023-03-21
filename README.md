@@ -1,14 +1,15 @@
-# Setup Delivery Environment (OAT)
+# SANDBOX DELIVERY ENVIRONMENT (WORK IN PROGRESS)
+**JENKIN/NEXUS/DOCKER/KUBERNETES/MICROK8S OUT-OF-THE-BOX**
 
 ## Goal
-The main goal is to create an environment that allows you an end-to-end delivery of your applications.
+The main goal is to create a virtualised environment that allows you an end-to-end delivery of your applications.
 
 The installation can be done on any computer that runs at last VirtualBox 7. 
 
 In the end you will have 2 running VMs that will provide different kind of popular services.
 
 ## Description
-Using VirtualBox7, this guide will help you to setup your bare metal installation for 2 development units:
+Using VirtualBox7, this guide will help you to setup your sandbox installation for 2 development units:
 
 - DevOps tools for pipelines (integration and delivery)
 - Applications runtime for deployment of your apps
