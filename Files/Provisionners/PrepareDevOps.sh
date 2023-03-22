@@ -28,7 +28,7 @@ chown -R 200 /home/jenkins_home
 chmod 7777 /home/jenkins_home
 
 echo '### copy files settings.xml and Dockerfile'
-MY_DOMAIN=$1, NEXUS_PASSWORD=$2 envsubst < /media/dtech/Files/MavenSettings/template.xml >> /home/jenkins_home/settings.xml
+MY_DOMAIN=$1 NEXUS_PASSWORD=$2 envsubst < /media/dtech/Files/MavenSettings/template.xml >> /home/jenkins_home/settings.xml
 cp /media/dtech/Files/JenkinsContainer/Dockerfile /home/jenkins_home/
 #### Add docker network
 
