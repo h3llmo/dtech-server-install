@@ -36,7 +36,7 @@ Vagrant.configure("2") do |config|
 
 		# MACHINE CONFIG
 		devops.disksize.size = DEVOPS_DISKSIZE
-		devops.vm.provision "shell", path: "../Files/Provisionners/PrepareDevOps.sh", args: [MY_DOMAIN NEXUS_PASSWORD]
+		devops.vm.provision "shell", path: "../Files/Provisionners/PrepareDevOps.sh", args: [MY_DOMAIN,NEXUS_PASSWORD]
 		# devops.vm.provision "shell", path: "RUN_DEVOPS.sh", run: 'always'
 
 		
