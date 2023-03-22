@@ -1,0 +1,16 @@
+{
+    "vms" : [
+        {
+            "name" : "DevOps",
+            "box": "minimal/centos7",
+            "memory": "1024",
+            "size": "25GB"
+        },
+        {
+            "name" : "Kube",
+            "box": "minimal/centos7",
+            "memory": "1024",
+            "size": "25GB"
+        }
+    ]
+}

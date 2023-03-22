@@ -1,0 +1,24 @@
+{
+    "internalDomain": "internal.mydomain.com",
+    "storage": "../.storage",
+    "DevOps": {
+        "vmName": "DevOps",
+        "modules": ["jenkins", "nexus", "docker"],
+        "jenkins": {
+            "adminPassword": "changeit",
+            "httpPort": 9002  
+        },
+        "nexus": {
+            "adminPassword" : "changeit",
+            "httpPort": 9003,
+            "dockerPort": 1100
+        }
+    },
+    "Kube": {
+        "vmName": "Kube",
+        "modules": ["docker", "microk8s"],
+        "microk8s": {
+            "httpPort": 10443
+        }
+    }
+}

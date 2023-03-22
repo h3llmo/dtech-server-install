@@ -1,0 +1,94 @@
+require 'json'
+blueprintF = File.read('blueprint.json')
+settingsF = File.read('settings.json')
+blueprint = JSON.parse(blueprintF)
+settings = JSON.parse(settingsF)
+internalDomain = settings["internalDomain"]
+storage = settings["storage"]
+Vagrant.configure("2") do |config|    
+    blueprint["vms"].each do |blueprintVM|
+        # Global Config For All VMs
+        config.vm.synced_folder "../", "/media/dtech"
+        config.vm.synced_folder storage, "/media/storage"
+        config.vm.provision "shell", inline:"echo '10.0.2.3 " + internalDomain + "' | sudo tee -a /etc/hosts"
+        
+        # Iterate on all declared VMs in blueprint and create them
+        config.vm.define blueprintVM["name"] do |machine|            
+            vmName = blueprintVM["name"]
+            print("Configuring " + vmName + "\n")
+            vmSettings = settings[vmName];
+            print("Found settings:\n---------\n " + JSON.generate(vmSettings) + "\n---------\n")            
+
+            machine.vm.box = blueprintVM["box"]
+            machine.vm.provider "virtualbox" do |v|
+                memory = blueprintVM["memory"]
+                size = blueprintVM["size"];
+
+                v.name = vmName
+                v.gui = false
+                v.customize ["modifyvm", :id, "--memory", memory, "--cpus", "1"]
+            end
+
+            # ---------------------------------------------------------
+            # --------------------MODULES SECTION----------------------
+            # ---------------------------------------------------------
+            
+            vmSettings["modules"].each do |mod|       
+                # ------------------------------------------------- NEXUS         
+                if mod == "nexus"
+                    print("MODULE: Enabling Nexus\n")
+                    
+                    nexusAdminPassword = vmSettings["nexus"]["adminPassword"]
+                    httpPort = vmSettings["nexus"]["httpPort"]
+
+                    machine.vm.provision "shell", path: "../Files/Modules/PrepareNexus.sh", 
+                        args: [storage,internalDomain,nexusAdminPassword]
+
+                       # machine.vm.provision "docker" do |d|
+                    #d.run "sonatype/nexus3", 
+                    #     args: "--restart=on-failure --detach -p 1100:1100 -p " + httpPort + ":8081 -v /media/storage/nexus-data:/nexus-data"                    
+                    #end              
+                    machine.vm.network :forwarded_port, guest: 8081, host: httpPort, auto_correct: true      
+                end
+                # ------------------------------------------------- JENKINS
+                if mod == "jenkins"                    
+                    print("MODULE: Enabling Jenkins\n")
+
+                    nexusAdminPassword = "missingNexus"
+                    httpPort = vmSettings["jenkins"]["httpPort"]
+
+
+                    vmSettings["modules"].each do |mod2| 
+                        if mod2 == "nexus"
+                            nexusAdminPassword = vmSettings["nexus"]["adminPassword"]
+                        end                 
+                    end 
+
+                    machine.vm.provision "shell", path: "../Files/Modules/PrepareJenkins.sh", 
+                        args: [internalDomain,nexusAdminPassword]
+
+                        #machine.vm.provision "docker" do |d|
+
+                    #machine.vm.provision "docker" do |d|
+                    #    d.build_image "/media/dtech/Files/JenkinsContainer/Dockerfile"
+                    #    d.run "myjenkins-blueocean:2.387.1-1", 
+                    #        args: "--restart=on-failure --detach --network jenkins --publish " + httpPort + ":8080 --publish 50000:50000 -v /media/storage/jenkins-data:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock"						
+                    #end
+
+                    machine.vm.network :forwarded_port, guest: 8080, host: httpPort, auto_correct: true
+                    # machine.vm.provision "shell", inline: "docker network create jenkins"         
+
+                end
+
+                if mod == "microk8s"
+                    httpPort = vmSettings["microk8s"]["httpPort"]
+
+                    machine.vm.provision "shell", path: "../Files/Modules/PrepareMicroK8s.sh",
+                        args: [internalDomain]
+
+                    machine.vm.network :forwarded_port, guest: 10443, host: httpPort, auto_correct: true      
+                end
+            end
+        end
+    end
+end
