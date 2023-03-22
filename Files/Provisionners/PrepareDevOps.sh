@@ -8,7 +8,7 @@ usermod -a -G docker vagrant
 
 echo '### Prepare insecure registry'
 mkdir /etc/docker
-cp /media/dtech/Files/DockerDaemon/daemon.json /etc/docker
+MY_DOMAIN=$1 envsubst < /media/dtech/Files/DockerDaemon/daemon.json >> /etc/docker/daemon.json
 
 ## 02.NEXUS (:9093)
 
@@ -28,7 +28,7 @@ chown -R 200 /home/jenkins_home
 chmod 7777 /home/jenkins_home
 
 echo '### copy files settings.xml and Dockerfile'
-cp /media/dtech/Files/MavenSettings/settings.xml /home/jenkins_home/
+MY_DOMAIN=$1, NEXUS_PASSWORD=$2 envsubst < /media/dtech/Files/MavenSettings/template.xml >> /home/jenkins_home/settings.xml
 cp /media/dtech/Files/JenkinsContainer/Dockerfile /home/jenkins_home/
 #### Add docker network
 
@@ -36,4 +36,4 @@ echo '### Create network'
 docker network create jenkins
 
 echo '### Build Jenkins image'
-docker build -t myjenkins-blueocean:2.387.1-1 -f /home/jenkins_home/Dockerfile /home/jenkins_home/
+# docker build -t myjenkins-blueocean:2.387.1-1 -f /home/jenkins_home/Dockerfile /home/jenkins_home/

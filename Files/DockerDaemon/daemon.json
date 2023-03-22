@@ -1,4 +1,4 @@
 {
-  "insecure-registries" : ["damosoft.internal.com:1100"]
+  "insecure-registries" : ["${MY_DOMAIN}:1100"]
 }
 

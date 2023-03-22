@@ -3,6 +3,9 @@
 
 ### configuration parameters ###
 
+MY_DOMAIN="internal.mydomain.com"
+NEXUS_PASSWORD="changeit"
+
 VAGRANT_IMAGE="adavilag/ubuntu-server-22.04.1"
 
 KUBE_NAME="kube"
@@ -11,14 +14,15 @@ KUBE_CPUS = "2"
 KUBE_DISKSIZE = "50GB"
 
 DEVOPS_NAME="devops"
-DEVOPS_MEMORY = "2049"
+DEVOPS_MEMORY = "4096"
 DEVOPS_CPUS = "2"
 DEVOPS_DISKSIZE = "50GB"
+
 
 Vagrant.configure("2") do |config|
 
 	# Global configuration for all VMS
-	config.vm.provision "shell", inline:"echo '10.0.2.3 damosoft.internal.com' | sudo tee -a /etc/hosts"
+	config.vm.provision "shell", inline:"echo '10.0.2.3 $1' | sudo tee -a /etc/hosts", args: MY_DOMAIN
 	config.vm.box = VAGRANT_IMAGE
 	config.vm.synced_folder "../", "/media/dtech"
 
@@ -32,9 +36,20 @@ Vagrant.configure("2") do |config|
 
 		# MACHINE CONFIG
 		devops.disksize.size = DEVOPS_DISKSIZE
-		devops.vm.provision "shell", path: "PROV_DEVOPS.sh"
+		devops.vm.provision "shell", path: "../Files/Provisionners/PrepareDevOps.sh", args: [MY_DOMAIN, NEXUS_PASSWORD]
 		# devops.vm.provision "shell", path: "RUN_DEVOPS.sh", run: 'always'
 
+		
+		devops.vm.provision "docker" do |d|
+			d.build_image "/media/dtech/Files/JenkinsContainer"
+			d.run "myjenkins-blueocean:2.387.1-1", 
+				args: "--restart=on-failure --detach --network jenkins --publish 8080:8080 --publish 50000:50000 -v /home/jenkins_home:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock"
+			d.run "sonatype/nexus3", 
+				args: "--restart=on-failure --detach -p 1100:1100 -p 8081:8081 -v ~/nexus-data/:/nexus-data"
+			
+		end
+		
+		
 		devops.vm.provider "virtualbox" do |v|
 			v.name = DEVOPS_NAME
 			v.gui = false
@@ -61,7 +76,7 @@ Vagrant.configure("2") do |config|
 
 		# MACHINE CONFIG
 		kube.disksize.size = KUBE_DISKSIZE
-		kube.vm.provision "shell", path: "PROV_KUBE.sh"
+		kube.vm.provision "shell", path: "../Files/Provisionners/PrepareKube.sh"
 		# kube.vm.provision "shell", path: "RUN_KUBE.sh", run: 'always'
 
 		kube.vm.provider "virtualbox" do |v|
@@ -69,6 +84,7 @@ Vagrant.configure("2") do |config|
 			v.gui = false
 			v.customize ["modifyvm", :id, "--memory", KUBE_MEMORY, "--cpus", KUBE_CPUS]
 		end
+
 
 	end
 
