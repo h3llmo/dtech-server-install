@@ -2,15 +2,18 @@
     "vms" : [
         {
             "name" : "DevOps",
-            "box": "minimal/centos7",
-            "memory": "1024",
-            "size": "25GB"
+            "box": "adavilag/ubuntu-server-22.04.1",
+            "memory": "4096",
+            "size": "50GB",
+            "cpus": "2"
+
         },
         {
             "name" : "Kube",
-            "box": "minimal/centos7",
-            "memory": "1024",
-            "size": "25GB"
+            "box": "adavilag/ubuntu-server-22.04.1",
+            "memory": "2048",
+            "size": "50GB",
+            "cpus": "2"
         }
     ]
 }

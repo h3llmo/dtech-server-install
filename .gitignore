@@ -29,3 +29,6 @@ target
 
 .storage
 .storage/**
+
+.vagrant
+.vagrant/**
