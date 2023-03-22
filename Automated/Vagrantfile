@@ -36,17 +36,17 @@ Vagrant.configure("2") do |config|
 
 		# MACHINE CONFIG
 		devops.disksize.size = DEVOPS_DISKSIZE
-		devops.vm.provision "shell", path: "../Files/Provisionners/PrepareDevOps.sh", args: [MY_DOMAIN, NEXUS_PASSWORD]
+		devops.vm.provision "shell", path: "../Files/Provisionners/PrepareDevOps.sh", args: [MY_DOMAIN NEXUS_PASSWORD]
 		# devops.vm.provision "shell", path: "RUN_DEVOPS.sh", run: 'always'
 
 		
 		devops.vm.provision "docker" do |d|
-			d.build_image "/media/dtech/Files/JenkinsContainer"
-			d.run "myjenkins-blueocean:2.387.1-1", 
-				args: "--restart=on-failure --detach --network jenkins --publish 8080:8080 --publish 50000:50000 -v /home/jenkins_home:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock"
 			d.run "sonatype/nexus3", 
-				args: "--restart=on-failure --detach -p 1100:1100 -p 8081:8081 -v ~/nexus-data/:/nexus-data"
+			args: "--restart=on-failure --detach -p 1100:1100 -p 8081:8081 -v ~/nexus-data/:/nexus-data"
 			
+			d.build_image "/media/dtech/Files/JenkinsContainer/Dockerfile"
+			d.run "myjenkins-blueocean:2.387.1-1", 
+				args: "--restart=on-failure --detach --network jenkins --publish 8080:8080 --publish 50000:50000 -v /home/jenkins_home:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock"						
 		end
 		
 		
