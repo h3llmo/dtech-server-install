@@ -8,6 +8,9 @@ The installation can be done on any computer that runs at last VirtualBox 7.
 
 In the end you will have 2 running VMs that will provide different kind of popular services.
 
+## Quick start
+
+
 ## Description
 Using VirtualBox7, this guide will help you to setup your sandbox installation for 2 development units:
 

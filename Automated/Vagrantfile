@@ -25,6 +25,7 @@ Vagrant.configure("2") do |config|
 	config.vm.provision "shell", inline:"echo '10.0.2.3 $1' | sudo tee -a /etc/hosts", args: MY_DOMAIN
 	config.vm.box = VAGRANT_IMAGE
 	config.vm.synced_folder "../", "/media/dtech"
+	config.vm.synced_folder "../.storage/docker-data", "/var/lib/docker"
 
 	# Configuration for DEVOPS machine
 	config.vm.define "devops" do |devops|

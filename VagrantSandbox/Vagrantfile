@@ -21,7 +21,10 @@ Vagrant.configure("2") do |config|
     # Global Config For All VMs
     config.vm.synced_folder "../", "/media/dtech"
     config.vm.synced_folder storage, "/media/storage"
+    config.vm.synced_folder storage + "/docker-data", "/var/lib/docker/aufs"
     config.vm.provision "shell", inline:"echo '10.0.2.3 " + internalDomain + "' | sudo tee -a /etc/hosts"
+    config.vm.provision :docker
+    # config.vm.provision :docker_compose
 
     # Iterate on all declared VMS from the blueprint
     blueprint["vms"].each do |blueprintVM|
@@ -68,16 +71,13 @@ Vagrant.configure("2") do |config|
                     nexusAdminPassword = vmSettings["nexus"]["adminPassword"]
                     httpPort = vmSettings["nexus"]["httpPort"]
                     crPort = vmSettings["nexus"]["dockerPort"]
-
-                    machine.vm.provision "shell", path: "../Files/Modules/PrepareNexus.sh", 
-                        args: [storage,internalDomain,nexusAdminPassword]
-
-                runArgs = "--restart=on-failure --detach -p " + crPort.to_s + ":1100 -p " + httpPort.to_s + ":8081 -v /media/storage/nexus-data:/nexus-data"
-				machine.vm.provision "docker" do |d|
-                    d.run "sonatype/nexus3", 
-                    args: runArgs
-                    end              
                     machine.vm.network :forwarded_port, guest: 8081, host: httpPort, auto_correct: true      
+                    machine.vm.provision "shell", path: "../Files/Modules/PrepareNexus.sh", args: [httpPort, crPort] 
+                    
+                    runArgs = "--restart=on-failure --detach -p " + crPort.to_s + ":1100 -p " + httpPort.to_s + ":8081 -v /media/storage/nexus-data:/nexus-data"
+                    machine.vm.provision "docker" do |d|
+                        d.run "sonatype/nexus3", args: runArgs
+                    end
                 end
 
 
@@ -87,6 +87,7 @@ Vagrant.configure("2") do |config|
 
                     nexusAdminPassword = "missingNexus"
                     httpPort = vmSettings["jenkins"]["httpPort"]
+                    machine.vm.network :forwarded_port, guest: 8080, host: httpPort, auto_correct: true
 
 
                     vmSettings["modules"].each do |mod2| 
@@ -96,17 +97,12 @@ Vagrant.configure("2") do |config|
                     end 
 
                     machine.vm.provision "shell", path: "../Files/Modules/PrepareJenkins.sh", 
-                        args: [internalDomain,nexusAdminPassword]
+                        args: [internalDomain,nexusAdminPassword,httpPort]
 
                     runArgs = "--restart=on-failure --detach --network jenkins -p " + httpPort.to_s + ":8080 -p 50000:50000 -v /media/storage/jenkins-data:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock"
                     machine.vm.provision "docker" do |d|
-                        d.build_image "/media/dtech/Files/JenkinsContainer/"
-                        d.run "myjenkins-blueocean:2.387.1-1", 
-                            args: runArgs
+                        d.run "myjenkins-blueocean:2.387.1-1", args: runArgs
                     end
-
-                    machine.vm.network :forwarded_port, guest: 8080, host: httpPort, auto_correct: true
-                    # machine.vm.provision "shell", inline: "docker network create jenkins"         
 
                 end
 
@@ -114,14 +110,21 @@ Vagrant.configure("2") do |config|
                 if mod == "microk8s"
                     puts vmName + " HAS MODULE MICROK8S"
 
+                    crPort = 1100
                     httpPort = vmSettings["microk8s"]["httpPort"]
 
+                    vmSettings["modules"].each do |mod2| 
+                        if mod2 == "nexus"
+                            crPort = vmSettings["nexus"]["dockerPort"]
+                        end                 
+                    end 
+
                     machine.vm.provision "shell", path: "../Files/Modules/PrepareMicroK8s.sh",
-                        args: [internalDomain]
+                        args: [internalDomain,crPort]
 
                     machine.vm.network :forwarded_port, guest: 10443, host: httpPort, auto_correct: true      
                 end
-            end
-        end
+            end            
+        end        
     end
 end
