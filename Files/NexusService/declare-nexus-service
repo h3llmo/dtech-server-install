@@ -1,0 +1,11 @@
+[Unit]
+Description=Nexus
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/docker run --privileged -p 8081:8081  -p 1100:1100 -v /media/storage/nexus-data/:/nexus-data sonatype/nexus3
+
+[Install]
+WantedBy=multi-user.target

@@ -1,4 +1,6 @@
 require 'json'
+# Vagrant.require_plugin "vagrant-reload"
+# Vagrant.require_plugin "vagrant-diskze"
 
 # Read the resources files for the blueprint and fine-tuning settings
 blueprintF = File.read('blueprint.json')
@@ -20,10 +22,10 @@ Vagrant.configure("2") do |config|
 
     # Global Config For All VMs
     config.vm.synced_folder "../", "/media/dtech"
-    config.vm.synced_folder storage, "/media/storage"
-    config.vm.synced_folder storage + "/docker-data", "/var/lib/docker/aufs"
+    config.vm.synced_folder storage, "/media/storage"    
     config.vm.provision "shell", inline:"echo '10.0.2.3 " + internalDomain + "' | sudo tee -a /etc/hosts"
     config.vm.provision :docker
+ #    config.vm.provision :reload
     # config.vm.provision :docker_compose
 
     # Iterate on all declared VMS from the blueprint
@@ -61,6 +63,8 @@ Vagrant.configure("2") do |config|
             end
 
             # --------------------MODULES SECTION----------------------
+            machine.vm.provision :docker
+            # machine.vm.provision :docker_compose
             
             # Iterate on declared modules  and configure if found           
             vmSettings["modules"].each do |mod|       
@@ -72,12 +76,8 @@ Vagrant.configure("2") do |config|
                     httpPort = vmSettings["nexus"]["httpPort"]
                     crPort = vmSettings["nexus"]["dockerPort"]
                     machine.vm.network :forwarded_port, guest: 8081, host: httpPort, auto_correct: true      
-                    machine.vm.provision "shell", path: "../Files/Modules/PrepareNexus.sh", args: [httpPort, crPort] 
-                    
-                    runArgs = "--restart=on-failure --detach -p " + crPort.to_s + ":1100 -p " + httpPort.to_s + ":8081 -v /media/storage/nexus-data:/nexus-data"
-                    machine.vm.provision "docker" do |d|
-                        d.run "sonatype/nexus3", args: runArgs
-                    end
+                    machine.vm.network :forwarded_port, guest: 1100, host: crPort, auto_correct: true      
+                    machine.vm.provision "shell", path: "../Files/Modules/PrepareNexus.sh", args: [httpPort, crPort]                     
                 end
 
 
@@ -96,13 +96,9 @@ Vagrant.configure("2") do |config|
                         end                 
                     end 
 
+                    machine.vm.network :forwarded_port, guest: 8080, host: httpPort, auto_correct: true      
                     machine.vm.provision "shell", path: "../Files/Modules/PrepareJenkins.sh", 
                         args: [internalDomain,nexusAdminPassword,httpPort]
-
-                    runArgs = "--restart=on-failure --detach --network jenkins -p " + httpPort.to_s + ":8080 -p 50000:50000 -v /media/storage/jenkins-data:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock"
-                    machine.vm.provision "docker" do |d|
-                        d.run "myjenkins-blueocean:2.387.1-1", args: runArgs
-                    end
 
                 end
 

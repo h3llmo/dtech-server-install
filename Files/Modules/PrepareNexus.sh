@@ -1,5 +1,9 @@
 echo '### Prepare Nexus volume'
-mkdir /media/storage/nexus-data
+mkdir -p /media/storage/nexus-data
 chown -R 200 /media/storage/nexus-data
 chmod 7777 /media/storage/nexus-data
-# docker run --restart=on-failure --detach -p $2:1100 -p $1:8081 -v /media/storage/nexus-data/:/nexus-data sonatype/nexus3 
+
+cp /media/dtech/Files/NexusService/declare-nexus-service /etc/systemd/system/nexus.service
+sudo systemctl daemon-reload
+sudo systemctl enable nexus.service
+sudo systemctl start nexus.service

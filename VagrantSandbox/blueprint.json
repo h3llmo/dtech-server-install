@@ -3,7 +3,7 @@
         {
             "name" : "DevOps",
             "box": "adavilag/ubuntu-server-22.04.1",
-            "memory": "4096",
+            "memory": "2040",
             "size": "50GB",
             "cpus": "2"
 
@@ -11,7 +11,7 @@
         {
             "name" : "Kube",
             "box": "adavilag/ubuntu-server-22.04.1",
-            "memory": "2048",
+            "memory": "1024",
             "size": "50GB",
             "cpus": "2"
         }
