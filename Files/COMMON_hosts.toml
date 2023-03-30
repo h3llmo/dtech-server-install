@@ -1,0 +1,5 @@
+# /var/snap/microk8s/current/args/certs.d/${MY_DOMAIN}:1100/hosts.toml
+server = "http://${MY_DOMAIN}:1100"
+
+[host."http://${MY_DOMAIN}:1100"]
+capabilities = ["pull", "resolve"]

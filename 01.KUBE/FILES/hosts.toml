@@ -1,5 +1,0 @@
-# /var/snap/microk8s/current/args/certs.d/damosoft.internal.com:1100/hosts.toml
-server = "http://damosoft.internal.com:1100"
-
-[host."http://damosoft.internal.com:1100"]
-capabilities = ["pull", "resolve"]

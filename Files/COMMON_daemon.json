@@ -1,0 +1,4 @@
+{
+  "insecure-registries" : ["${MY_DOMAIN}:1100"]
+}
+

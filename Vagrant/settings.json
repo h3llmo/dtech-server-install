@@ -3,7 +3,7 @@
     "storage": "../.storage",
     "DevOps": {
         "vmName": "DevOps",
-        "modules": ["nexus", "jenkins"],
+        "modules": ["nexus"],
         "jenkins": {
             "adminPassword": "changeit",
             "httpPort": 9002  
