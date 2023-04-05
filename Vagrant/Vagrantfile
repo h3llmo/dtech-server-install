@@ -1,12 +1,8 @@
 require 'json'
-# Vagrant.require_plugin "vagrant-reload"
-# Vagrant.require_plugin "vagrant-diskze"
 
-# Read the resources files for the blueprint and fine-tuning settings
 blueprintF = File.read('blueprint.json')
 settingsF = File.read('settings.json')
 
-# Parse the files to JSON objects
 blueprint = JSON.parse(blueprintF)
 settings = JSON.parse(settingsF)
 
@@ -17,44 +13,22 @@ internalDomain = settings["internalDomain"]
 storage = settings["storage"]
 
 
-# Start configuration from V2 specs
 Vagrant.configure("2") do |config|    
-
-    # Global Config For All VMs
     config.vm.synced_folder "../", "/media/dtech"
     config.vm.synced_folder storage, "/media/storage"    
     config.vm.provision "shell", inline:"echo '10.0.2.3 " + internalDomain + "' | sudo tee -a /etc/hosts"
-    config.vm.provision :docker
- #    config.vm.provision :reload
-    # config.vm.provision :docker_compose
 
-    # Iterate on all declared VMS from the blueprint
     blueprint["vms"].each do |blueprintVM|
-
-        # Start configuration for each machine
         config.vm.define blueprintVM["name"] do |machine|            
-
-            # Retrieve name and fine-tunings settings
             vmName = blueprintVM["name"]            
             vmSettings = settings[vmName];
-
-            # Set which vagrant box to use from the blueprints
             machine.vm.box = blueprintVM["box"]
-
-            # Specifications for VirtualBox
             machine.vm.provider "virtualbox" do |v|
-
-                # Get machine specs from the blueprint
                 memory = blueprintVM["memory"]
                 cpus = blueprintVM["cpus"]
                 size = blueprintVM["size"];
-
                 v.name = vmName
-
-                # No GUI required
                 v.gui = false
-
-                # Enable ioapic if more thant 1 cpu allocated
                 if cpus == "1"
                     v.customize ["modifyvm", :id, "--memory", memory, "--cpus", cpus]
                 else
@@ -62,34 +36,22 @@ Vagrant.configure("2") do |config|
                 end
             end
 
-            # --------------------MODULES SECTION----------------------
-            machine.vm.provision :docker
-            # machine.vm.provision :docker_compose
-            
-            # Iterate on declared modules  and configure if found           
-            vmSettings["modules"].each do |mod|       
-                # ------------------------------------------------- WHEN NEXUS
+            vmSettings["modules"].each do |mod|      
+                if mod == "docker"
+                    machine.vm.provision "shell", path: "../Files/COMMON_installDocker.sh"
+                end 
                 if mod == "nexus"
-                    puts vmName + " HAS MODULE NEXUS"
-                    
                     nexusAdminPassword = vmSettings["nexus"]["adminPassword"]
                     httpPort = vmSettings["nexus"]["httpPort"]
                     crPort = vmSettings["nexus"]["dockerPort"]
                     machine.vm.network :forwarded_port, guest: 8081, host: httpPort, auto_correct: true      
                     machine.vm.network :forwarded_port, guest: 1100, host: crPort, auto_correct: true      
-                    machine.vm.provision "shell", path: "../Files/NEXUS_prepare.sh"                    
+                    machine.vm.provision "shell", path: "../Files/NEXUS_prepare.sh"
                 end
-
-
-                # ------------------------------------------------- JENKINS
                 if mod == "jenkins"                    
-                    puts vmName + " HAS MODULE JENKINS"
-
                     nexusAdminPassword = "missingNexus"
                     httpPort = vmSettings["jenkins"]["httpPort"]
                     machine.vm.network :forwarded_port, guest: 8080, host: httpPort, auto_correct: true
-
-
                     vmSettings["modules"].each do |mod2| 
                         if mod2 == "nexus"
                             nexusAdminPassword = vmSettings["nexus"]["adminPassword"]
@@ -101,11 +63,7 @@ Vagrant.configure("2") do |config|
                         args: [internalDomain,nexusAdminPassword,httpPort]
 
                 end
-
-                # ------------------------------------------------- MICROK8S
                 if mod == "microk8s"
-                    puts vmName + " HAS MODULE MICROK8S"
-
                     crPort = 1100
                     httpPort = vmSettings["microk8s"]["httpPort"]
 
