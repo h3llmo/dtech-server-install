@@ -1,4 +1,4 @@
 {
-  "insecure-registries" : ["${MY_DOMAIN}:1100"]
+  "insecure-registries" : ["${MY_DOMAIN}:${CR_PORT}"]
 }
 
