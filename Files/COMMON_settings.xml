@@ -13,7 +13,7 @@
         <mirror>
             <id>nexus</id>
             <name>Nexus Repo</name>
-            <url>http://${MY_DOMAIN}:9003/repository/maven-group/</url>
+            <url>http://${MY_DOMAIN}:${NEXUS_PORT}/repository/maven-group/</url>
             <mirrorOf>*</mirrorOf>
         </mirror>
     </mirrors>
@@ -30,7 +30,7 @@
                         <enabled>true</enabled>
                         <updatePolicy>always</updatePolicy>
                     </releases>
-                    <url>http://${MY_DOMAIN}:9003/repository/maven-releases/</url>
+                    <url>http://${MY_DOMAIN}:${NEXUS_PORT}/repository/maven-releases/</url>
                 </repository>
                 <repository>
                     <id>nexus-snapshots</id>
@@ -41,7 +41,7 @@
                     <releases>
                         <enabled>false</enabled>
                     </releases>
-                    <url>http://${MY_DOMAIN}:9003/repository/maven-snapshots/</url>
+                    <url>http://${MY_DOMAIN}:${NEXUS_PORT}/repository/maven-snapshots/</url>
                 </repository>
             </repositories>
         </profile>
