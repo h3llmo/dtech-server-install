@@ -1,9 +1,7 @@
-echo '### Prepare stateful jenkins volumes'
 sudo mkdir  -p /media/storage/jenkins_home
 sudo chown -R 200 /media/storage/jenkins_home
 sudo chmod 7777 /media/storage/jenkins_home
-echo '### copy files settings.xml and Dockerfile'
-sudo MY_DOMAIN=$1, NEXUS_PASSWORD=$2 envsubst < /media/dtech/Files/COMMON_settings.xml >> /home/vagrant/settings.xml
+sudo MY_DOMAIN=$1, NEXUS_PASSWORD=$2, NEXUS_PORT=$3 envsubst < /media/dtech/Files/COMMON_settings.xml >> /home/vagrant/settings.xml
 
 cp /media/dtech/Files/JENKINS_jenkins.service /etc/systemd/system/jenkins.service
 sudo systemctl daemon-reload
